@@ -589,7 +589,21 @@ void setup() {
     if (digitalRead(BOOT_PIN) == LOW) { prefs.begin("wifi", false); prefs.clear(); prefs.end();
       Serial.println("[setup] BOOT held -> cleared saved WiFi"); } }
 
-  if (!connectWiFi()) startConfigPortal();   // portal blocks + reboots on save; returns only when connected
+  // A configured device that can't join (router rebooting, power cut, ISP line resyncing)
+  // keeps retrying for WIFI_RETRY_MS before falling back to the setup portal. The portal is
+  // an OPEN access point, so opening it after just 30s would expose it to anyone nearby
+  // for most of every router outage.
+  const uint32_t WIFI_RETRY_MS = 10UL * 60 * 1000;   // 10 minutes
+  bool online = connectWiFi();
+  if (!online && hasCreds()) {
+    uint32_t t0 = millis();
+    while (!online && millis() - t0 < WIFI_RETRY_MS) {
+      Serial.println("[wifi] connect failed, retrying in 5s");
+      WiFi.disconnect(); delay(5000);
+      online = connectWiFi();
+    }
+  }
+  if (!online) startConfigPortal();   // portal blocks + reboots on save; returns only when connected
   Serial.printf("WiFi up: %s\n", WiFi.localIP().toString().c_str());
   if (MDNS.begin("c3adblock")) { MDNS.addService("http", "tcp", 80); Serial.println("dashboard: http://c3adblock.local"); }
 

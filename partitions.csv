@@ -1,9 +1,10 @@
 # Dual-OTA layout for 4MB flash: two app slots (firmware OTA) + LittleFS (blocklist).
-# Firmware ~1.24MB (TLS+HTTP+OTA), so slots are 1.3125MB (~134KB headroom each).
-# That leaves 1.3125MB for the blocklist (~250k domains @ 5 bytes).
+# espressif32 platform 8.x builds the firmware at ~1.40MB (older cores: ~1.24MB), so the
+# app slots are 1.4375MB each (~100KB headroom). That leaves 1.0625MB for the blocklist
+# (~200k domains @ 5 bytes; the default StevenBlack + Hagezi Light list is ~0.65MB).
 # Name,     Type, SubType, Offset,   Size
 nvs,        data, nvs,     0x9000,   0x5000
 otadata,    data, ota,     0xe000,   0x2000
-app0,       app,  ota_0,   0x10000,  0x150000
-app1,       app,  ota_1,   0x160000, 0x150000
-spiffs,     data, spiffs,  0x2b0000, 0x150000
+app0,       app,  ota_0,   0x10000,  0x170000
+app1,       app,  ota_1,   0x180000, 0x170000
+spiffs,     data, spiffs,  0x2f0000, 0x110000
